@@ -42,8 +42,7 @@ class NifRestApiClient:
 
     def _is_token_valid(self):
         try:
-            if self.token is not None and datetime.now().replace(tzinfo=self.tz_local).timestamp() < self.token.get(
-                    'expires_at', 0):
+            if self.token is not None and datetime.utcnow().replace(tzinfo=self.tz_local).timestamp() < self.token.get('expires_at', 0):
                 return True
         except:
             pass
