@@ -157,7 +157,10 @@ class NifRestApiClient:
         r = self._get(NIF_EDUCATION_URL, '/competences/competencesforperson', params={'personId': person_id})
 
         if r.status_code == 200:
-            return True, PersonCompetences(r.json()).value
+            try:
+                return True, PersonCompetences(r.json()).value
+            except:
+                pass
 
         return False, None
 
