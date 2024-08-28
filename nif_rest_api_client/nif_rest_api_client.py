@@ -38,11 +38,12 @@ class NifRestApiClient:
         self.auth = requests.auth.HTTPBasicAuth(client_id, client_secret)
         self.client = BackendApplicationClient(client_id=client_id)
         self.oauth = OAuth2Session(client=self.client)
-        #self._get_token()
+        # self._get_token()
 
     def _is_token_valid(self):
         try:
-            if self.token is not None and datetime.now().replace(tzinfo=self.tz_local).timestamp() < self.token.get('expires_at', 0):
+            if self.token is not None and datetime.now().replace(tzinfo=self.tz_local).timestamp() < self.token.get(
+                    'expires_at', 0):
                 return True
         except:
             pass
@@ -65,15 +66,18 @@ class NifRestApiClient:
             if self.token is not None and self._is_token_valid() is True:
                 json.dump(self.token, f)
 
-
     @retry((requests.exceptions.ConnectionError), tries=3, delay=0.1)
+    def _fetch_token(self):
+        self.token = self.oauth.fetch_token(token_url=TOKEN_URL, auth=self.auth)
+
     def _get_token(self):
         self.token = self._load_token_file()
         if self.token is not None and self._is_token_valid() is True:
             self.oauth.token = self.token
         elif self.token is None or self._is_token_valid() is False:
-            self.token = self.oauth.fetch_token(token_url=TOKEN_URL, auth=self.auth)
-            self.token['expires_at'] = self.oauth.token['expires_at'] = self.token['expires_at'] + int(round(datetime.now().timestamp()-datetime.now().replace(tzinfo=self.tz_local).timestamp(),0))
+
+            self.token['expires_at'] = self.oauth.token['expires_at'] = self.token['expires_at'] + int(
+                round(datetime.now().timestamp() - datetime.now().replace(tzinfo=self.tz_local).timestamp(), 0))
             if self.token is not None:
                 self._save_token_file()
 
@@ -142,7 +146,7 @@ class NifRestApiClient:
 
         return False, None
 
-    def get_person_police_certificate(self,  person_id=None, buypass_id=None):
+    def get_person_police_certificate(self, person_id=None, buypass_id=None):
 
         r = self._get(NIF_DATA_URL, '/person/PoliceCertificate', {'personId': person_id, 'buypassId': buypass_id})
 
@@ -195,15 +199,16 @@ class NifRestApiClient:
 
         return False, None
 
-    def search_competences(self, query): #, org_id=None):
+    def search_competences(self, query):  # , org_id=None):
 
         """orgId has no effect"""
-        r = self._post(NIF_EDUCATION_URL, '/competences/search', json={'description': query}) #, 'orgId': org_id})
+        r = self._post(NIF_EDUCATION_URL, '/competences/search', json={'description': query})  # , 'orgId': org_id})
 
         if r.status_code in [200, 201]:
             return True, r.json()
 
         return False, None
+
     """ORGS"""
 
     def get_clubs(self, org_id=376, logo=False):
@@ -287,7 +292,6 @@ class NifRestApiClient:
             return True, r.json()
 
         return False, None
-
 
     def register_drone_pilot(self, person_id):
         """GET???"""
