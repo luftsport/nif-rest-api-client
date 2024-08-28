@@ -73,6 +73,7 @@ class NifRestApiClient:
             self.oauth.token = self.token
         elif self.token is None or self._is_token_valid() is False:
             self.token = self.oauth.fetch_token(token_url=TOKEN_URL, auth=self.auth)
+            self.token['expires_at'] = self.oauth.token['expires_at'] = self.token['expires_at'] + int(round(datetime.now().timestamp()-datetime.now().replace(tzinfo=self.tz_local).timestamp(),0))
             if self.token is not None:
                 self._save_token_file()
 
