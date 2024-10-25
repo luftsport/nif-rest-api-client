@@ -12,8 +12,9 @@ import os.path
 
 from .typings import PersonCompetences
 
-TOKEN_URL = 'https://id.nif.no/connect/token'
-NIF_DATA_URL = 'https://data.nif.no/api/v1'
+
+TOKEN_URL = 'https://iddst.nif.no/connect/token' # 'https://id.nif.no/connect/token'
+NIF_DATA_URL = 'https://datadst.nif.no/api/v1' #'https://data.nif.no/api/v1'
 NIF_EDUCATION_URL = 'https://nif-education-api-prod-app.azurewebsites.net/api/v1'
 LOCAL_TIMEZONE = 'Europe/Oslo'
 
@@ -69,15 +70,23 @@ class NifRestApiClient:
     def _fetch_token(self):
         self.token = self.oauth.fetch_token(token_url=TOKEN_URL, auth=self.auth)
 
-    def _get_token(self):
+    def _get_token(self, force=False):
+        """
+        Get token, try file first if not valid then fetch token from token resource
+
+        :param force: force token fetch from token resource omitting validating checks
+        :return:
+        """
         self.token = self._load_token_file()
-        if self.token is not None and self._is_token_valid() is True:
-            self.oauth.token = self.token
-        elif self.token is None or self._is_token_valid() is False:
+
+        if self.token is None or self._is_token_valid() is False or force is True:
             self._fetch_token()
-            self.token =  self.oauth.token # ['expires_at'] = self.token['expires_at'] + int(round(datetime.now().timestamp() - datetime.now().replace(tzinfo=self.tz_local).timestamp(), 0))
+            self.token = self.oauth.token  # ['expires_at'] = self.token['expires_at'] + int(round(datetime.now().timestamp() - datetime.now().replace(tzinfo=self.tz_local).timestamp(), 0))
             if self.token is not None:
                 self._save_token_file()
+        elif self.token is not None and self._is_token_valid() is True:
+            self.oauth.token = self.token
+
 
     def _before(self):
         """Verify token"""
@@ -290,6 +299,22 @@ class NifRestApiClient:
             return True, r.json()
 
         return False, None
+
+    """
+    Activities
+    """
+
+    def get_events_for_org(self, org_id, start_date=datetime.now()):
+        r = self._get(NIF_DATA_URL, f'/activity/EventsForOrg', params={'orgId': org_id, 'startDate': start_date})
+
+        if r.status_code == 200:
+            return True, r.json()
+
+        return False, None
+
+    """
+    Drone pilot
+    """
 
     def register_drone_pilot(self, person_id):
         """GET???"""
