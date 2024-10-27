@@ -3,7 +3,7 @@ from requests_oauthlib import OAuth2Session
 import base64
 from functools import wraps
 import inspect
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import tz
 from retry import retry
 import requests
@@ -311,6 +311,31 @@ class NifRestApiClient:
             return True, r.json()
 
         return False, None
+
+    def get_event_participants(self, event_id):
+        r = self._get(NIF_DATA_URL, f'/activity/Participants', params={'eventId': event_id})
+
+        if r.status_code == 200:
+            return True, r.json()
+
+        return False, None
+
+    def get_events_for_org_schedule(self, org_id, start_date=datetime.now(), end_date=datetime.now()+timedelta(days=14)):
+        r = self._get(NIF_DATA_URL, f'/activity/EventsForOrg/Schedule', params={'orgId': org_id, 'startDate': start_date})
+
+        if r.status_code == 200:
+            return True, r.json()
+
+        return False, None
+
+    def get_events(self, event_id):
+        r = self._get(NIF_DATA_URL, f'/activity/Events', params={'eventId': event_id})
+
+        if r.status_code == 200:
+            return True, r.json()
+
+        return False, None
+
 
     """
     Drone pilot
