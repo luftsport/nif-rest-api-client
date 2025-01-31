@@ -409,6 +409,6 @@ class NifRestApiClient:
         r = self._get(self.NIF_DATA_URL, f'/activity/FlyDrone/{person_id}')
 
         if r.status_code in [200, 201]:
-            return True, r.json()
+            return r.status_code, r.json()
 
         return False, None
