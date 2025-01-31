@@ -411,4 +411,4 @@ class NifRestApiClient:
         if r.status_code in [200, 201]:
             return r.status_code, r.json()
 
-        return False, None
+        return r.status_code, r.text
