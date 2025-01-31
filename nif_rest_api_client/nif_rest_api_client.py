@@ -244,7 +244,17 @@ class NifRestApiClient:
 
     def search_competences(self, query):  # , org_id=None):
 
-        """orgId has no effect"""
+        """orgId has no effect
+        {
+          "competenceTitle": "string",
+          "description": "string",
+          "shortDescription": "string",
+          "certificationDescription": "string",
+          "owningOrgId": "string",
+          "competenceId": "string",
+          "sportId": 0
+        }
+        """
         r = self._post(self.NIF_EDUCATION_URL, '/competences/search', payload=query)  # , 'orgId': org_id})
 
         if r.status_code in [200, 201]:
