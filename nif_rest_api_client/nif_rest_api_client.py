@@ -1,5 +1,4 @@
-from oauthlib.oauth2 import BackendApplicationClient
-from oauthlib.oauth2.rfc6749.errors.TokenExpiredError import TokenExpiredError
+from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 import base64
 from functools import wraps
