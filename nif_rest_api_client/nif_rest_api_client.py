@@ -1,4 +1,5 @@
 from oauthlib.oauth2 import BackendApplicationClient
+from oauthlib.oauth2.rfc6749.errors.TokenExpiredError import TokenExpiredError
 from requests_oauthlib import OAuth2Session
 import base64
 from functools import wraps
@@ -109,7 +110,12 @@ class NifRestApiClient:
     @before
     @retry((requests.exceptions.ConnectionError, ConnectionError), tries=3, delay=0.1)
     def _get(self, base_url, resource_url, params=None):
-        return self.oauth.get(f'{base_url}/{resource_url}', params=params)
+        try:
+            return self.oauth.get(f'{base_url}/{resource_url}', params=params)
+        except TokenExpiredError as e:
+            # Token expired, try to fetch a new one
+            self._get_token(force=True)
+            raise requests.exceptions.ConnectionError # trigger retry
 
     @before
     @retry((requests.exceptions.ConnectionError, ConnectionError), tries=3, delay=0.1)
