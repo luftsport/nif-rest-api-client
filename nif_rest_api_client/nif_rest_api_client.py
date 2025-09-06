@@ -114,7 +114,7 @@ class NifRestApiClient:
         except TokenExpiredError as e:
             # Token expired, try to fetch a new one
             self._get_token(force=True)
-            raise requests.exceptions.ConnectionError # trigger retry
+            raise requests.exceptions.ConnectionError  # trigger retry
 
     @before
     @retry((requests.exceptions.ConnectionError, ConnectionError), tries=3, delay=0.1)
@@ -398,6 +398,48 @@ class NifRestApiClient:
 
     def get_event_participants(self, event_id):
         r = self._get(self.NIF_DATA_URL, f'/activity/Participants', params={'eventId': event_id})
+
+        if r.status_code == 200:
+            return True, r.json()
+
+        return False, None
+
+    """
+    Courseevents
+    r = api._get('https://nif-education-api-prod-app.azurewebsites.net/api/v1/courseevents/', 'courseevent/17636685')
+    r = api._post('https:/', 'CourseSearch', payload={'hostOrgId': 376})
+    
+    """
+
+    def search_courseevents(self, query):
+        """
+        query:
+        {
+          "courseEventId": "string",
+          "courseEventTitle": "string",
+          "shortDescription": "string",
+          "startDate": "2025-09-05T20:06:43.667Z",
+          "endDate": "2025-09-05T20:06:43.667Z",
+          "hostOrgId": 0,
+          "competenceTitle": "string",
+          "competenceId": 0,
+          "modifiedDate": "2025-09-05T20:06:43.667Z",
+          "sportId": 0
+        }
+        :param org_id:
+        :param activity_id:
+        :param include_deactivated:
+        :return:
+        """
+        r = self._post(self.NIF_EDUCATION_URL, '/courseevents/search', payload=query)
+
+        if r.status_code == 200:
+            return True, r.json()
+
+        return False, None
+
+    def get_course_event(self, course_event_id):
+        r = self._get(self.NIF_EDUCATION_URL, f'/courseevents/courseevent/{course_event_id}')
 
         if r.status_code == 200:
             return True, r.json()
