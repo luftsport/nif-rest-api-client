@@ -121,9 +121,9 @@ class NifRestApiClient:
     def _post(self, base_url, resource_url, payload=None, params=None):
         return self.oauth.post(f'{base_url}/{resource_url}', json=payload, params=params)
 
-    def get_person(self, person_id):
+    def get_person(self, person_id=None, buypass_id=None):
 
-        r = self._get(self.NIF_DATA_URL, '/person/personinfo', params={'personId': person_id})
+        r = self._get(self.NIF_DATA_URL, '/person/personinfo', params={'personId': person_id, 'buypassId': buypass_id})
         # self.oauth.get(f'{self.NIF_DATA_URL}/person/personinfo', params={'personId': person_id})
 
         if r.status_code == 200:
