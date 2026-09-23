@@ -10,7 +10,17 @@ from urllib3.poolmanager import PoolManager
 from urllib3.connection import HTTPConnection
 import socket
 
+
 class SessionAdapter(HTTPAdapter):
+    def __init__(self, connections=10, maxsize=1, *args, **kwargs):
+        # Explicitly forward them into the parent class using native names
+        super(SessionAdapter, self).__init__(
+            pool_connections=connections,
+            pool_maxsize=maxsize,
+            *args,
+            **kwargs
+        )
+
     def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
         # 1. DO NOT use ssl.create_default_context() directly.
         # Instead, look for a context provided by urllib3 or fall back to system defaults
@@ -46,15 +56,15 @@ class SessionAdapter(HTTPAdapter):
         pool_kwargs['socket_options'] = HTTPConnection.default_socket_options + [
             (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
             (socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60),  # Ping every 60 seconds
-            (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10), # Retry every 10s if missed
-            (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)     # Drop after 3 misses
+            (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10),  # Retry every 10s if missed
+            (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)  # Drop after 3 misses
         ]
 
         # 5. FIX: Force pool manager to only hold 1 socket and not pool multiple connections.
         # This stops requests from holding onto dead sockets that remote servers closed.
         self.poolmanager = PoolManager(
             num_pools=connections,
-            maxsize=1,            # strictly allow only 1 connection per host
+            maxsize=1,  # strictly allow only 1 connection per host
             block=block,
             **pool_kwargs
         )
