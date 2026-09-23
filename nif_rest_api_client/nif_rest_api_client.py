@@ -9,6 +9,7 @@ from retry import retry
 import requests
 import json
 import os.path
+from .session_adapter import SessionAdapter
 
 from .typings import PersonCompetences
 
@@ -45,7 +46,11 @@ class NifRestApiClient:
         self.auth = requests.auth.HTTPBasicAuth(client_id, client_secret)
         self.client = BackendApplicationClient(client_id=client_id)
         self.oauth = OAuth2Session(client=self.client)
-        # self._get_token()
+
+        # Mount the session adapter to work around the nif ssl/tcp drop issues
+        adapter = SessionAdapter(connections=10, maxsize=1)
+        self.oauth.mount("https://", adapter)
+        self.oauth.mount("http://", adapter)
 
     def _is_token_valid(self):
         try:
