@@ -6,6 +6,9 @@ Fix for ssl EOF errors in requests for:
 import ssl
 import requests
 from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+from urllib3.connection import HTTPConnection
+import socket
 
 class SessionAdapter(HTTPAdapter):
     def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
