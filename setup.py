@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="nif-rest-api-client",
-    version="0.0.19",
+    version="0.0.20",
     author="Einar Huseby",
     author_email="einar.huseby@gmail.com",
     description="Tools to programmatically interact with NIF's REST Api",
@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/luftsport/nif-rest-api-client",
     packages=setuptools.find_packages(),
-    install_requires=['requests_oauthlib', 'requests', 'python-dateutil', 'oauthlib', 'retry', 'inflection'],
+    install_requires=['requests_oauthlib', 'requests', 'python-dateutil', 'oauthlib', 'inflection', 'tenacity'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

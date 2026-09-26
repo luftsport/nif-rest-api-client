@@ -5,7 +5,6 @@ from functools import wraps
 import inspect
 from datetime import datetime, timedelta
 from dateutil import tz
-from retry import retry
 import requests
 import json
 import os.path
@@ -15,6 +14,14 @@ from .typings import PersonCompetences
 
 LOCAL_TIMEZONE = 'Europe/Oslo'
 
+# ssl and connection errors retry
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from requests.exceptions import SSLError, ConnectionError, Timeout
+RETRY_ERRS=retry_if_exception_type((
+    SSLError,
+    ConnectionError,
+    Timeout
+))
 
 def before(f):
     @wraps(f)
@@ -77,7 +84,12 @@ class NifRestApiClient:
             if self.token is not None and self._is_token_valid() is True:
                 json.dump(self.token, f)
 
-    @retry((requests.exceptions.ConnectionError), tries=3, delay=0.1)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=RETRY_ERRS,
+        reraise=True
+    )
     def _fetch_token(self):
         self.token = self.oauth.fetch_token(token_url=self.TOKEN_URL, auth=self.auth)
 
@@ -112,7 +124,12 @@ class NifRestApiClient:
             raise Exception('Could not init token', e)
 
     @before
-    @retry((requests.exceptions.ConnectionError, ConnectionError), tries=3, delay=0.1)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=RETRY_ERRS,
+        reraise=True
+    )
     def _get(self, base_url, resource_url, params=None):
         try:
             return self.oauth.get(f'{base_url}/{resource_url}', params=params)
@@ -122,7 +139,12 @@ class NifRestApiClient:
             raise requests.exceptions.ConnectionError  # trigger retry
 
     @before
-    @retry((requests.exceptions.ConnectionError, ConnectionError), tries=3, delay=0.1)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=RETRY_ERRS,
+        reraise=True
+    )
     def _post(self, base_url, resource_url, payload=None, params=None):
         return self.oauth.post(f'{base_url}/{resource_url}', json=payload, params=params)
 
